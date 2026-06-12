@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NeuroLab Live
+
+Interactive Neuromarketing Seminar Platform — a responsive web app for live audience participation in neuromarketing workshops.
+
+## Tech Stack
+
+- **Next.js 16** (App Router, Turbopack)
+- **TypeScript**
+- **Tailwind CSS v4**
+- **Zustand** for state management
+- **Recharts** for data visualization
+- **qrcode.react** for QR code generation
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Presenter mode**: Create a session → get a code/QR → manage exercises → view live results
+- **Participant mode**: Join with code + alias → complete exercises on mobile
 
-## Learn More
+### Modules
 
-To learn more about Next.js, take a look at the following resources:
+| # | Module | Description |
+|---|--------|-------------|
+| 1 | Session Join | Enter code + alias / create session |
+| 2 | Attention Test | 6 stimuli shown for 1.3s, recall/emotion/brand questions |
+| 3 | Face Priming | 20 rounds, priming word → choose sympathetic face |
+| 4 | Brand Quadrant | Map brands to CARE/LUST/PLAY/SEEKING quadrants |
+| 5 | Free Energy Routine | Rate scenarios on 5 dimensions |
+| 6 | Neuro Product Tuner | A×F/Z score → sensory recommendations |
+| 7 | Company Diagnosis | Neuro Gap Map with current vs target system |
+| 8 | Presenter Dashboard | QR code, live results, timer, export |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### File Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/
+│   ├── globals.css         # Theme & custom styles
+│   ├── layout.tsx          # Root layout
+│   └── page.tsx            # Route controller
+├── components/
+│   ├── SessionJoin.tsx
+│   ├── AttentionTest.tsx
+│   ├── FacePriming.tsx
+│   ├── BrandQuadrant.tsx
+│   ├── FreeEnergy.tsx
+│   ├── NeuroTuner.tsx
+│   ├── CompanyDiagnosis.tsx
+│   ├── PresenterDashboard.tsx
+│   └── ParticipantView.tsx
+├── data/
+│   └── placeholders.ts     # Stimuli, brands, priming words
+└── store/
+    └── useSessionStore.ts  # Zustand global state
+```
 
-## Deploy on Vercel
+## Extending with Supabase/Firebase
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The store is designed to be backend-ready. Replace Zustand actions with real-time database calls (e.g., Supabase Realtime channels or Firebase RTDB) to sync state across presenter and participants.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Export
+
+Presenter can export all session data as JSON via the dashboard.
