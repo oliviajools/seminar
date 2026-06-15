@@ -177,6 +177,47 @@ export const BRANDS = [
   "Red Bull",
 ];
 
+export const BRAND_QUADRANT_EXPLANATIONS: Record<
+  string,
+  {
+    mainQuadrant: "CARE" | "LUST" | "PLAY" | "SEEKING";
+    explanation: string;
+  }
+> = {
+  Apple: {
+    mainQuadrant: "SEEKING",
+    explanation: "Apple verkörpert das Streben nach Innovation und Entdeckung. Die Marke steht für technologischen Fortschritt, Neugier und den Wunsch, die Zukunft zu gestalten.",
+  },
+  Nike: {
+    mainQuadrant: "PLAY",
+    explanation: "Nike repräsentiert Bewegung, Sport und Spaß. Die Marke fördert spielerische Aktivität, Wettkampf und die Freude an körperlicher Betätigung.",
+  },
+  IKEA: {
+    mainQuadrant: "CARE",
+    explanation: "IKEA steht für Fürsorge und Zuhause. Die Marke bietet erschwingliche Lösungen für ein gemütliches, geschütztes Zuhause und kümmert sich um das alltägliche Wohlbefinden.",
+  },
+  Tesla: {
+    mainQuadrant: "SEEKING",
+    explanation: "Tesla symbolisiert das Streben nach nachhaltiger Innovation und technologischer Spitzenleistung. Die Marke verkörpert Neugier, Entdeckungsdrang und die Vision einer besseren Zukunft.",
+  },
+  "Coca-Cola": {
+    mainQuadrant: "LUST",
+    explanation: "Coca-Cola verkörpert Genuss und Vergnügen. Die Marke steht für Freude, Geschmackserlebnisse und das pure Vergnügen eines kühlen Getränks.",
+  },
+  Patagonia: {
+    mainQuadrant: "CARE",
+    explanation: "Patagonia verkörpert echte Fürsorge für die Umwelt. Die Marke steht für Nachhaltigkeit, Schutz der Natur und Verantwortung für zukünftige Generationen.",
+  },
+  Lego: {
+    mainQuadrant: "PLAY",
+    explanation: "Lego ist die Essenz des Spiels und der Kreativität. Die Marke fördert spielerisches Lernen, Fantasie und die Freude am Erschaffen.",
+  },
+  "Red Bull": {
+    mainQuadrant: "SEEKING",
+    explanation: "Red Bull verkörpert das Streben nach Abenteuer und Grenzerfahrung. Die Marke steht für Energie, Mut und den Wunsch, das eigene Potenzial zu entdecken und zu erweitern.",
+  },
+};
+
 export const QUADRANTS = [
   { id: "CARE", label: "CARE / Fürsorge", position: "top-left" },
   { id: "LUST", label: "LUST / Begehren", position: "top-right" },

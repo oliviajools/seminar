@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useSessionStore } from "@/store/useSessionStore";
-import { BRANDS, QUADRANTS } from "@/data/placeholders";
+import { BRANDS, QUADRANTS, BRAND_QUADRANT_EXPLANATIONS } from "@/data/placeholders";
 
 export default function BrandQuadrant() {
   const { role, participantId, brandQuadrantResponses, addBrandQuadrantResponse } =
@@ -96,19 +96,39 @@ export default function BrandQuadrant() {
     );
   }
 
-  // Participant view
+  // Participant view - completion with explanations
   if (submitted) {
     return (
       <div className="min-h-screen bg-black p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white/5 border border-white/10 p-12 text-center">
-            <div className="text-8xl mb-8">✓</div>
-            <p className="text-3xl text-white font-light mb-2 tracking-wide">
-              ALL BRANDS ASSIGNED
-            </p>
-            <p className="text-white/40">
-              Thank you for your participation.
-            </p>
+        <div className="max-w-4xl mx-auto space-y-12">
+          <div className="border-b border-white/20 pb-8">
+            <h2 className="text-5xl font-light text-white tracking-tight">
+              BRAND QUADRANT RESULTS
+            </h2>
+            <div className="w-24 h-px bg-white mt-6"></div>
+          </div>
+          <p className="text-white/40">
+            Thank you for your participation. Here's why each brand mainly plays in its emotional system:
+          </p>
+          <div className="space-y-6">
+            {BRANDS.map((brand) => {
+              const explanation = BRAND_QUADRANT_EXPLANATIONS[brand];
+              const quadrant = QUADRANTS.find((q) => q.id === explanation.mainQuadrant);
+              return (
+                <div
+                  key={brand}
+                  className="bg-white/5 border border-white/10 p-6"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-medium text-xl text-white">{brand}</h3>
+                    <span className="text-xs px-3 py-1 border border-white/20 text-white/60">
+                      {quadrant?.label}
+                    </span>
+                  </div>
+                  <p className="text-white/60">{explanation.explanation}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -137,7 +157,6 @@ export default function BrandQuadrant() {
           onClick={() => handlePlacement("CARE")}
           className="bg-white/5 border border-white/10 p-8 hover:border-white/40 transition-all text-center"
         >
-          <p className="text-3xl mb-3">💚</p>
           <p className="font-medium text-white tracking-wider">CARE</p>
           <p className="text-xs text-white/40 mt-1">CARE</p>
         </button>
@@ -145,7 +164,6 @@ export default function BrandQuadrant() {
           onClick={() => handlePlacement("LUST")}
           className="bg-white/5 border border-white/10 p-8 hover:border-white/40 transition-all text-center"
         >
-          <p className="text-3xl mb-3">💜</p>
           <p className="font-medium text-white tracking-wider">LUST</p>
           <p className="text-xs text-white/40 mt-1">LUST</p>
         </button>
@@ -153,7 +171,6 @@ export default function BrandQuadrant() {
           onClick={() => handlePlacement("PLAY")}
           className="bg-white/5 border border-white/10 p-8 hover:border-white/40 transition-all text-center"
         >
-          <p className="text-3xl mb-3">🧡</p>
           <p className="font-medium text-white tracking-wider">PLAY</p>
           <p className="text-xs text-white/40 mt-1">PLAY</p>
         </button>
@@ -161,7 +178,6 @@ export default function BrandQuadrant() {
           onClick={() => handlePlacement("SEEKING")}
           className="bg-white/5 border border-white/10 p-8 hover:border-white/40 transition-all text-center"
         >
-          <p className="text-3xl mb-3">💙</p>
           <p className="font-medium text-white tracking-wider">SEEKING</p>
           <p className="text-xs text-white/40 mt-1">SEEKING</p>
         </button>
