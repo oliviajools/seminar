@@ -8,7 +8,7 @@ const firebaseConfig = {
   storageBucket: "neuromarketing-seminar.firebasestorage.app",
   messagingSenderId: "783041998770",
   appId: "1:783041998770:web:6fbc61d0b1b2e5241afeab",
-  databaseURL: "https://neuromarketing-seminar-default-rtdb.firebaseio.com",
+  databaseURL: "https://neuromarketing-seminar-default-rtdb.europe-west1.firebasedatabase.app",
 };
 
 // Initialize Firebase
