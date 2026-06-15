@@ -9,6 +9,15 @@ import {
   DatabaseReference,
 } from "firebase/database";
 
+export interface NeuroTunerResponse {
+  participantId: string;
+  activation: number;
+  goalDirectedness: number;
+  freeEnergy: number;
+  targetSystem: "SEEKING" | "LUST" | "CARE" | "PLAY";
+  timestamp: number;
+}
+
 // Session data structure
 export interface SessionData {
   participants: Record<string, Participant>;
