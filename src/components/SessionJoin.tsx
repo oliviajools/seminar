@@ -15,6 +15,17 @@ export default function SessionJoin() {
     }
   };
 
+  const handleCreateSession = async () => {
+    console.log("Create session button clicked");
+    try {
+      await createSession();
+      console.log("Session created successfully");
+    } catch (error) {
+      console.error("Error creating session:", error);
+      alert("Fehler beim Erstellen der Session. Bitte überprüfe die Konsole.");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
       <div className="w-full max-w-md space-y-12">
@@ -67,10 +78,7 @@ export default function SessionJoin() {
           <div className="mt-8 pt-8 border-t border-white/10">
             <button
               type="button"
-              onClick={() => {
-                console.log("Create session button clicked");
-                createSession();
-              }}
+              onClick={handleCreateSession}
               className="w-full py-4 border border-white/20 text-white/60 text-sm hover:border-white/40 hover:text-white tracking-wider transition-all"
             >
               CREATE SESSION (PRESENTER)
