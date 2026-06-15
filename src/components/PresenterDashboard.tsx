@@ -3,16 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useSessionStore, ExerciseId } from "@/store/useSessionStore";
-import AttentionTest from "./AttentionTest";
-import FacePriming from "./FacePriming";
 import BrandQuadrant from "./BrandQuadrant";
 import FreeEnergy from "./FreeEnergy";
 import NeuroTuner from "./NeuroTuner";
 import CompanyDiagnosis from "./CompanyDiagnosis";
 
 const EXERCISES: { id: ExerciseId; label: string; icon: string }[] = [
-  { id: "attention", label: "Attention Test", icon: "👁️" },
-  { id: "facepriming", label: "Face Priming", icon: "🧠" },
   { id: "brandquadrant", label: "Brand Quadrant", icon: "📊" },
   { id: "freeenergy", label: "Free Energy", icon: "⚡" },
   { id: "neurotuner", label: "Neuro Tuner", icon: "🎛️" },
@@ -80,10 +76,6 @@ export default function PresenterDashboard() {
 
   const renderExercise = () => {
     switch (currentExercise) {
-      case "attention":
-        return <AttentionTest />;
-      case "facepriming":
-        return <FacePriming />;
       case "brandquadrant":
         return <BrandQuadrant />;
       case "freeenergy":
@@ -93,7 +85,7 @@ export default function PresenterDashboard() {
       case "diagnosis":
         return <CompanyDiagnosis />;
       default:
-        return <AttentionTest />;
+        return <BrandQuadrant />;
     }
   };
 

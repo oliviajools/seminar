@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 import {
   createSession as createFirebaseSession,
   joinSession as joinFirebaseSession,
@@ -124,24 +125,26 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 12);
 }
 
-export const useSessionStore = create<SessionState>((set, get) => ({
-  sessionCode: null,
-  role: null,
-  participantId: null,
-  alias: null,
-  participants: [],
-  currentExercise: "join",
-  timerSeconds: 0,
-  isTimerRunning: false,
+export const useSessionStore = create<SessionState>()(
+  persist(
+    (set, get) => ({
+      sessionCode: null,
+      role: null,
+      participantId: null,
+      alias: null,
+      participants: [],
+      currentExercise: "join",
+      timerSeconds: 0,
+      isTimerRunning: false,
 
-  attentionResponses: [],
-  facePrimingResponses: [],
-  brandQuadrantResponses: [],
-  freeEnergyResponses: [],
-  neuroTunerResponses: [],
-  diagnosisResponses: [],
+      attentionResponses: [],
+      facePrimingResponses: [],
+      brandQuadrantResponses: [],
+      freeEnergyResponses: [],
+      neuroTunerResponses: [],
+      diagnosisResponses: [],
 
-  unsubscribeFromFirebase: null,
+      unsubscribeFromFirebase: null,
 
   createSession: async () => {
     const code = generateSessionCode();
@@ -311,20 +314,31 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   setTimerRunning: (running) => set({ isTimerRunning: running }),
 
   exportData: () => {
-    const state = get();
-    return JSON.stringify(
-      {
-        sessionCode: state.sessionCode,
-        participants: state.participants,
-        attentionResponses: state.attentionResponses,
-        facePrimingResponses: state.facePrimingResponses,
-        brandQuadrantResponses: state.brandQuadrantResponses,
-        freeEnergyResponses: state.freeEnergyResponses,
-        neuroTunerResponses: state.neuroTunerResponses,
-        diagnosisResponses: state.diagnosisResponses,
-      },
-      null,
-      2
-    );
-  },
-}));
+      const state = get();
+      return JSON.stringify(
+        {
+          sessionCode: state.sessionCode,
+          participants: state.participants,
+          attentionResponses: state.attentionResponses,
+          facePrimingResponses: state.facePrimingResponses,
+          brandQuadrantResponses: state.brandQuadrantResponses,
+          freeEnergyResponses: state.freeEnergyResponses,
+          neuroTunerResponses: state.neuroTunerResponses,
+          diagnosisResponses: state.diagnosisResponses,
+        },
+        null,
+        2
+      );
+    },
+  }),
+  {
+    name: 'neurolab-session',
+    partialize: (state) => ({
+      sessionCode: state.sessionCode,
+      role: state.role,
+      participantId: state.participantId,
+      alias: state.alias,
+      currentExercise: state.currentExercise,
+    }),
+  }
+));
