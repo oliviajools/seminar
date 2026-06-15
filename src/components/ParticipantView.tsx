@@ -2,16 +2,12 @@
 
 import { useState } from "react";
 import { useSessionStore, ExerciseId } from "@/store/useSessionStore";
-import AttentionTest from "./AttentionTest";
-import FacePriming from "./FacePriming";
 import BrandQuadrant from "./BrandQuadrant";
 import FreeEnergy from "./FreeEnergy";
 import NeuroTuner from "./NeuroTuner";
 import CompanyDiagnosis from "./CompanyDiagnosis";
 
 const EXERCISES: { id: ExerciseId; label: string; icon: string }[] = [
-  { id: "attention", label: "Attention", icon: "👁️" },
-  { id: "facepriming", label: "Priming", icon: "🧠" },
   { id: "brandquadrant", label: "Brands", icon: "📊" },
   { id: "freeenergy", label: "Energy", icon: "⚡" },
   { id: "neurotuner", label: "Tuner", icon: "🎛️" },
@@ -20,14 +16,10 @@ const EXERCISES: { id: ExerciseId; label: string; icon: string }[] = [
 
 export default function ParticipantView() {
   const { alias, sessionCode } = useSessionStore();
-  const [activeExercise, setActiveExercise] = useState<ExerciseId>("attention");
+  const [activeExercise, setActiveExercise] = useState<ExerciseId>("brandquadrant");
 
   const renderExercise = () => {
     switch (activeExercise) {
-      case "attention":
-        return <AttentionTest />;
-      case "facepriming":
-        return <FacePriming />;
       case "brandquadrant":
         return <BrandQuadrant />;
       case "freeenergy":
@@ -37,7 +29,7 @@ export default function ParticipantView() {
       case "diagnosis":
         return <CompanyDiagnosis />;
       default:
-        return <AttentionTest />;
+        return <BrandQuadrant />;
     }
   };
 

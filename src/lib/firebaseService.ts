@@ -106,14 +106,22 @@ export const subscribeToBrandQuadrantResponses = (
   return unsubscribe;
 };
 
-export const subscribeToAttentionTestResponses = (
+export const addNeuroTunerResponse = async (
   sessionId: string,
-  callback: (responses: AttentionTestResponse[]) => void
+  response: NeuroTunerResponse
+): Promise<void> => {
+  const responsesRef = ref(database, `sessions/${sessionId}/neuroTunerResponses`);
+  await push(responsesRef, response);
+};
+
+export const subscribeToNeuroTunerResponses = (
+  sessionId: string,
+  callback: (responses: NeuroTunerResponse[]) => void
 ): (() => void) => {
-  const responsesRef = ref(database, `sessions/${sessionId}/attentionTestResponses`);
+  const responsesRef = ref(database, `sessions/${sessionId}/neuroTunerResponses`);
   const unsubscribe = onValue(responsesRef, (snapshot) => {
     const data = snapshot.val();
-    const responses = data ? Object.values(data) as AttentionTestResponse[] : [];
+    const responses = data ? Object.values(data) as NeuroTunerResponse[] : [];
     callback(responses);
   });
   return unsubscribe;

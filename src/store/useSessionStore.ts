@@ -3,8 +3,11 @@ import {
   createSession as createFirebaseSession,
   joinSession as joinFirebaseSession,
   addBrandQuadrantResponse as addFirebaseBrandQuadrantResponse,
+  addNeuroTunerResponse as addFirebaseNeuroTunerResponse,
   subscribeToBrandQuadrantResponses,
+  subscribeToNeuroTunerResponses,
   type BrandQuadrantResponse as FirebaseBrandQuadrantResponse,
+  type NeuroTunerResponse as FirebaseNeuroTunerResponse,
 } from "@/lib/firebaseService";
 
 export type UserRole = "presenter" | "participant" | null;
@@ -172,9 +175,8 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       console.log("Joined Firebase session successfully");
       
       // Subscribe to real-time updates
-      const unsubscribe = subscribeToBrandQuadrantResponses(code, (responses) => {
+      const unsubscribeBrand = subscribeToBrandQuadrantResponses(code, (responses) => {
         console.log("Received brand quadrant responses from Firebase:", responses);
-        // Convert Firebase responses to local format
         const localResponses: BrandQuadrantResponse[] = responses.map((r: FirebaseBrandQuadrantResponse) => ({
           participantId: r.participantId,
           brand: r.brand,
@@ -182,8 +184,20 @@ export const useSessionStore = create<SessionState>((set, get) => ({
         }));
         set({ brandQuadrantResponses: localResponses });
       });
+
+      const unsubscribeNeuro = subscribeToNeuroTunerResponses(code, (responses) => {
+        console.log("Received neuro tuner responses from Firebase:", responses);
+        const localResponses: NeuroTunerResponse[] = responses.map((r: FirebaseNeuroTunerResponse) => ({
+          participantId: r.participantId,
+          activation: r.activation,
+          goalDirectedness: r.goalDirectedness,
+          freeEnergy: r.freeEnergy,
+          targetSystem: r.targetSystem,
+        }));
+        set({ neuroTunerResponses: localResponses });
+      });
       
-      set({ unsubscribeFromFirebase: unsubscribe });
+      set({ unsubscribeFromFirebase: () => { unsubscribeBrand(); unsubscribeNeuro(); } });
     } catch (error) {
       console.error("Error joining Firebase session:", error);
       // Continue with local state even if Firebase fails
@@ -195,7 +209,7 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       participantId: id,
       alias,
       participants: [...state.participants, participant],
-      currentExercise: "attention",
+      currentExercise: "brandquadrant",
     }));
   },
 
@@ -262,10 +276,32 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     set((state) => ({
       freeEnergyResponses: [...state.freeEnergyResponses, r],
     })),
-  addNeuroTunerResponse: (r) =>
+  addNeuroTunerResponse: async (r) => {
+    const { sessionCode } = get();
+    
+    // Update local state
     set((state) => ({
       neuroTunerResponses: [...state.neuroTunerResponses, r],
-    })),
+    }));
+    
+    // Sync to Firebase if session exists
+    if (sessionCode) {
+      try {
+        const firebaseResponse: FirebaseNeuroTunerResponse = {
+          participantId: r.participantId,
+          activation: r.activation,
+          goalDirectedness: r.goalDirectedness,
+          freeEnergy: r.freeEnergy,
+          targetSystem: r.targetSystem,
+          timestamp: Date.now(),
+        };
+        await addFirebaseNeuroTunerResponse(sessionCode, firebaseResponse);
+        console.log("Neuro tuner response synced to Firebase");
+      } catch (error) {
+        console.error("Error syncing neuro tuner response to Firebase:", error);
+      }
+    }
+  },
   addDiagnosisResponse: (r) =>
     set((state) => ({
       diagnosisResponses: [...state.diagnosisResponses, r],
