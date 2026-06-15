@@ -250,6 +250,61 @@ export const FREE_ENERGY_SCENARIOS = [
 
 export const EMOTIONAL_SYSTEMS = ["SEEKING", "LUST", "CARE", "PLAY"] as const;
 
+export type EmotionalSystem = (typeof EMOTIONAL_SYSTEMS)[number];
+
+export type VariableKey = "activation" | "goalDirectedness" | "freeEnergy";
+
+// Klartext-Achsen: übersetzen den Neuro-Jargon in team-taugliche Fragen.
+// Grundlage: FRAMEWORK.md Abschnitt 4.1
+export const VARIABLE_AXES: Record<
+  VariableKey,
+  {
+    label: string;
+    jargon: string;
+    question: string;
+    low: string;
+    mid: string;
+    high: string;
+  }
+> = {
+  activation: {
+    label: "Aktivierung",
+    jargon: "Activation",
+    question: "Wie viel Energie löst der Reiz aus?",
+    low: "ruhig, sicher, reduziert",
+    mid: "aufmerksam, interessiert",
+    high: "energiegeladen, intensiv",
+  },
+  goalDirectedness: {
+    label: "Zielstrebigkeit",
+    jargon: "Goal Directedness",
+    question: "Wie klar ist die nächste Handlung?",
+    low: "offen, explorativ",
+    mid: "Orientierung mit Wahlfreiheit",
+    high: "klare CTA, direkte Handlung",
+  },
+  freeEnergy: {
+    label: "Überraschung",
+    jargon: "Free Energy",
+    question: "Wie neu/unerwartet ist der Reiz?",
+    low: "vertraut, erwartbar",
+    mid: "neu, aber verständlich",
+    high: "stark neu, irritierend, riskant",
+  },
+};
+
+// Soll-Profile je System als Wertebereiche [min, max] auf der 1–10-Skala.
+// Grundlage: FRAMEWORK.md Abschnitt 4.2 (aus den Seminar-Slides abgeleitet)
+export const SYSTEM_PROFILES: Record<
+  EmotionalSystem,
+  Record<VariableKey, [number, number]>
+> = {
+  SEEKING: { activation: [8, 10], goalDirectedness: [3, 6], freeEnergy: [8, 10] },
+  PLAY: { activation: [6, 9], goalDirectedness: [2, 4], freeEnergy: [4, 7] },
+  LUST: { activation: [6, 9], goalDirectedness: [4, 7], freeEnergy: [4, 7] },
+  CARE: { activation: [3, 6], goalDirectedness: [8, 10], freeEnergy: [2, 4] },
+};
+
 export const SENSORY_RECOMMENDATIONS: Record<
   string,
   {

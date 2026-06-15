@@ -7,12 +7,16 @@ import BrandQuadrant from "./BrandQuadrant";
 import FreeEnergy from "./FreeEnergy";
 import NeuroTuner from "./NeuroTuner";
 import CompanyDiagnosis from "./CompanyDiagnosis";
+import Validation from "./Validation";
+import Report from "./Report";
 
 const EXERCISES: { id: ExerciseId; label: string; icon: string }[] = [
   { id: "brandquadrant", label: "Brand Quadrant", icon: "📊" },
   { id: "freeenergy", label: "Free Energy", icon: "⚡" },
   { id: "neurotuner", label: "Neuro Tuner", icon: "🎛️" },
   { id: "diagnosis", label: "Diagnosis", icon: "🏢" },
+  { id: "validation", label: "Validierung", icon: "🔍" },
+  { id: "report", label: "Report", icon: "📄" },
 ];
 
 export default function PresenterDashboard() {
@@ -84,6 +88,10 @@ export default function PresenterDashboard() {
         return <NeuroTuner />;
       case "diagnosis":
         return <CompanyDiagnosis />;
+      case "validation":
+        return <Validation />;
+      case "report":
+        return <Report />;
       default:
         return <BrandQuadrant />;
     }

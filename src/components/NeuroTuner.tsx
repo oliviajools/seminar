@@ -2,7 +2,12 @@
 
 import { useState, useMemo } from "react";
 import { useSessionStore } from "@/store/useSessionStore";
-import { EMOTIONAL_SYSTEMS, SENSORY_RECOMMENDATIONS } from "@/data/placeholders";
+import {
+  EMOTIONAL_SYSTEMS,
+  SENSORY_RECOMMENDATIONS,
+  VARIABLE_AXES,
+} from "@/data/placeholders";
+import { computeProfileFit } from "@/lib/profileFit";
 
 export default function NeuroTuner() {
   const { role, participantId, neuroTunerResponses, addNeuroTunerResponse } =
@@ -15,10 +20,15 @@ export default function NeuroTuner() {
   >("SEEKING");
   const [submitted, setSubmitted] = useState(false);
 
-  const score = useMemo(() => {
-    const z = goalDirectedness || 1;
-    return Math.round((activation * freeEnergy) / z * 10) / 10;
-  }, [activation, goalDirectedness, freeEnergy]);
+  const fit = useMemo(
+    () =>
+      computeProfileFit(targetSystem, {
+        activation,
+        goalDirectedness,
+        freeEnergy,
+      }),
+    [targetSystem, activation, goalDirectedness, freeEnergy]
+  );
 
   const handleSubmit = () => {
     if (!participantId) return;
@@ -33,18 +43,27 @@ export default function NeuroTuner() {
   };
 
   const aggregated = useMemo(() => {
-    const bySystem: Record<string, { count: number; avgScore: number }> = {};
+    const bySystem: Record<string, { count: number; avgFit: number }> = {};
     EMOTIONAL_SYSTEMS.forEach((sys) => {
       const responses = neuroTunerResponses.filter(
         (r) => r.targetSystem === sys
       );
       const total = responses.length || 1;
-      const avgScore =
+      const avgFit =
         responses.reduce((s, r) => {
-          const z = r.goalDirectedness || 1;
-          return s + (r.activation * r.freeEnergy) / z;
+          return (
+            s +
+            computeProfileFit(sys, {
+              activation: r.activation,
+              goalDirectedness: r.goalDirectedness,
+              freeEnergy: r.freeEnergy,
+            }).fitPercent
+          );
         }, 0) / total;
-      bySystem[sys] = { count: responses.length, avgScore: Math.round(avgScore * 10) / 10 };
+      bySystem[sys] = {
+        count: responses.length,
+        avgFit: Math.round(avgFit),
+      };
     });
     return bySystem;
   }, [neuroTunerResponses]);
@@ -74,7 +93,7 @@ export default function NeuroTuner() {
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-medium text-lg text-white">{sys}</h3>
                   <span className="text-sm text-white/60">
-                    {data.count} participants | Score: {data.avgScore}
+                    {data.count} Teilnehmer | Ø Fit: {data.avgFit}%
                   </span>
                 </div>
                 <div className="space-y-2 text-sm">
@@ -101,26 +120,49 @@ export default function NeuroTuner() {
         <div className="max-w-4xl mx-auto space-y-12">
           <div className="border-b border-white/20 pb-8">
             <h2 className="text-5xl font-light text-white tracking-tight">
-              YOUR NEURO PROFILE
+              DEIN NEURO-PROFIL
             </h2>
             <div className="w-24 h-px bg-white mt-6"></div>
           </div>
         <div className="bg-white/5 border border-white/10 p-8">
           <div className="text-center mb-8">
-            <p className="text-4xl font-light text-white">{score}</p>
-            <p className="text-xs text-white/60 mt-2 tracking-wider">SCORE = A × F / Z</p>
+            <p className="text-5xl font-light text-white">{fit.fitPercent}%</p>
+            <p className="text-xs text-white/60 mt-2 tracking-wider">
+              PASSUNG ZUM SOLL-PROFIL
+            </p>
             <p className="text-lg mt-4">
-              Target System: <span className="font-medium text-white">{targetSystem}</span>
+              Ziel-System: <span className="font-medium text-white">{targetSystem}</span>
             </p>
           </div>
-          <h3 className="font-light text-white mb-4 tracking-wide">RECOMMENDED SENSORY VARIABLES:</h3>
+          <div className="space-y-3 mb-8">
+            {fit.variables.map((v) => (
+              <div key={v.key} className="border border-white/10 p-4">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm text-white tracking-wider">{v.label}</span>
+                  <span
+                    className={`text-xs px-2 py-0.5 border ${
+                      v.status === "ok"
+                        ? "border-white/60 text-white"
+                        : "border-white/20 text-white/40"
+                    }`}
+                  >
+                    {v.status === "ok" ? "IM SOLL" : v.status === "low" ? "ZU NIEDRIG" : "ZU HOCH"}
+                  </span>
+                </div>
+                <p className="text-xs text-white/50">
+                  {v.value}/10 · Soll {v.target[0]}–{v.target[1]} · {v.hint}
+                </p>
+              </div>
+            ))}
+          </div>
+          <h3 className="font-light text-white mb-4 tracking-wide">EMPFOHLENE SENSORISCHE REIZE:</h3>
           <div className="space-y-2 text-sm">
-            <p><span className="text-white/60">🎨 Color:</span> {rec.color}</p>
-            <p><span className="text-white/60">◼️ Form:</span> {rec.form}</p>
-            <p><span className="text-white/60">🎬 Motion:</span> {rec.motion}</p>
-            <p><span className="text-white/60">🔊 Sound:</span> {rec.sound}</p>
-            <p><span className="text-white/60">⏱️ Timing:</span> {rec.timing}</p>
-            <p><span className="text-white/60">✍️ Copy:</span> {rec.copyStyle}</p>
+            <p><span className="text-white/60">Farbe:</span> {rec.color}</p>
+            <p><span className="text-white/60">Form:</span> {rec.form}</p>
+            <p><span className="text-white/60">Bewegung:</span> {rec.motion}</p>
+            <p><span className="text-white/60">Sound:</span> {rec.sound}</p>
+            <p><span className="text-white/60">Timing:</span> {rec.timing}</p>
+            <p><span className="text-white/60">Copy:</span> {rec.copyStyle}</p>
           </div>
         </div>
       </div>
@@ -137,60 +179,10 @@ export default function NeuroTuner() {
           </h2>
           <div className="w-24 h-px bg-white mt-6"></div>
         </div>
-      <div className="bg-white/5 border border-white/10 p-8 space-y-6">
-        <div className="text-center">
-          <p className="text-4xl font-light text-white">{score}</p>
-          <p className="text-xs text-white/60 mt-2 tracking-wider">SCORE = A × F / Z</p>
-        </div>
-
-        <div>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-white/60 tracking-wider">A = ACTIVATION</span>
-            <span className="text-white font-mono">{activation}</span>
-          </div>
-          <input
-            type="range"
-            min={1}
-            max={10}
-            value={activation}
-            onChange={(e) => setActivation(Number(e.target.value))}
-            className="w-full"
-          />
-        </div>
-
-        <div>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-white/60 tracking-wider">Z = GOAL DIRECTEDNESS</span>
-            <span className="text-white font-mono">{goalDirectedness}</span>
-          </div>
-          <input
-            type="range"
-            min={1}
-            max={10}
-            value={goalDirectedness}
-            onChange={(e) => setGoalDirectedness(Number(e.target.value))}
-            className="w-full"
-          />
-        </div>
-
-        <div>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-white/60 tracking-wider">F = FREE ENERGY</span>
-            <span className="text-white font-mono">{freeEnergy}</span>
-          </div>
-          <input
-            type="range"
-            min={1}
-            max={10}
-            value={freeEnergy}
-            onChange={(e) => setFreeEnergy(Number(e.target.value))}
-            className="w-full"
-          />
-        </div>
-
+      <div className="bg-white/5 border border-white/10 p-8 space-y-8">
         <div>
           <label className="block text-sm font-medium text-white/60 mb-3 tracking-wider">
-            EMOTIONAL TARGET SYSTEM
+            ZIEL-SYSTEM
           </label>
           <div className="grid grid-cols-2 gap-3">
             {EMOTIONAL_SYSTEMS.map((sys) => (
@@ -209,11 +201,65 @@ export default function NeuroTuner() {
           </div>
         </div>
 
+        <div className="text-center border-y border-white/10 py-4">
+          <p className="text-5xl font-light text-white">{fit.fitPercent}%</p>
+          <p className="text-xs text-white/60 mt-2 tracking-wider">
+            LIVE-PASSUNG ZU {targetSystem}
+          </p>
+        </div>
+
+        {fit.variables.map((v) => {
+          const axis = VARIABLE_AXES[v.key];
+          const setter =
+            v.key === "activation"
+              ? setActivation
+              : v.key === "goalDirectedness"
+              ? setGoalDirectedness
+              : setFreeEnergy;
+          return (
+            <div key={v.key}>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-white tracking-wider">{axis.label}</span>
+                <span className="text-white font-mono">{v.value}/10</span>
+              </div>
+              <p className="text-xs text-white/40 mb-2">{axis.question}</p>
+              <div className="relative">
+                {/* Soll-Bereich-Markierung */}
+                <div className="absolute top-1/2 -translate-y-1/2 h-1.5 bg-white/20 pointer-events-none"
+                  style={{
+                    left: `${((v.target[0] - 1) / 9) * 100}%`,
+                    width: `${((v.target[1] - v.target[0]) / 9) * 100}%`,
+                  }}
+                />
+                <input
+                  type="range"
+                  min={1}
+                  max={10}
+                  value={v.value}
+                  onChange={(e) => setter(Number(e.target.value))}
+                  className="w-full relative"
+                />
+              </div>
+              <div className="flex justify-between text-[10px] text-white/30 mt-1">
+                <span>{axis.low}</span>
+                <span>{axis.high}</span>
+              </div>
+              <p
+                className={`text-xs mt-1 ${
+                  v.status === "ok" ? "text-white/70" : "text-white/40"
+                }`}
+              >
+                Soll {v.target[0]}–{v.target[1]} · {v.hint}
+              </p>
+            </div>
+          );
+        })}
+
         <button
           onClick={handleSubmit}
           className="w-full py-4 bg-white text-black text-sm font-medium tracking-widest hover:bg-white/90 transition-all"
         >
-          CALCULATE & SUBMIT
+          PROFIL ABSENDEN
         </button>
       </div>
     </div>

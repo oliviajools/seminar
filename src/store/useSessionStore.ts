@@ -20,6 +20,8 @@ export type ExerciseId =
   | "freeenergy"
   | "neurotuner"
   | "diagnosis"
+  | "validation"
+  | "report"
   | "dashboard";
 
 export interface Participant {
