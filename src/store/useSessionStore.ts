@@ -172,6 +172,12 @@ export const useSessionStore = create<SessionState>()(
     const id = generateId();
     const participant: Participant = { id, alias, joinedAt: Date.now() };
     
+    // Clear Firebase subscription if exists
+    const { unsubscribeFromFirebase } = get();
+    if (unsubscribeFromFirebase) {
+      unsubscribeFromFirebase();
+    }
+    
     // Join Firebase session
     try {
       await joinFirebaseSession(code, id, "participant");
@@ -213,6 +219,8 @@ export const useSessionStore = create<SessionState>()(
       alias,
       participants: [...state.participants, participant],
       currentExercise: "brandquadrant",
+      brandQuadrantResponses: [], // Clear responses for new session
+      neuroTunerResponses: [], // Clear responses for new session
     }));
   },
 

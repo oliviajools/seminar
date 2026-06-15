@@ -6,7 +6,7 @@ import { useSessionStore } from "@/store/useSessionStore";
 export default function SessionJoin() {
   const [code, setCode] = useState("");
   const [alias, setAlias] = useState("");
-  const { createSession, joinSession } = useSessionStore();
+  const { createSession, joinSession, role } = useSessionStore();
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +25,14 @@ export default function SessionJoin() {
       alert("Fehler beim Erstellen der Session. Bitte überprüfe die Konsole.");
     }
   };
+
+  // If already in a session, redirect to appropriate view
+  if (role === "presenter") {
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white">Redirecting to Dashboard...</div>;
+  }
+  if (role === "participant") {
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white">Redirecting to Session...</div>;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-8">
