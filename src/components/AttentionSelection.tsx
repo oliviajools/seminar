@@ -100,5 +100,6 @@ export default function AttentionSelection() {
         </button>
       </div>
     </div>
+    </div>
   );
 }

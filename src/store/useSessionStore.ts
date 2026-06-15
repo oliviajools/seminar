@@ -1,4 +1,11 @@
 import { create } from "zustand";
+import {
+  createSession as createFirebaseSession,
+  joinSession as joinFirebaseSession,
+  addBrandQuadrantResponse as addFirebaseBrandQuadrantResponse,
+  subscribeToBrandQuadrantResponses,
+  type BrandQuadrantResponse as FirebaseBrandQuadrantResponse,
+} from "@/lib/firebaseService";
 
 export type UserRole = "presenter" | "participant" | null;
 export type ExerciseId =
@@ -86,6 +93,9 @@ interface SessionState {
   neuroTunerResponses: NeuroTunerResponse[];
   diagnosisResponses: DiagnosisResponse[];
 
+  // Firebase subscription cleanup function
+  unsubscribeFromFirebase: (() => void) | null;
+
   // Actions
   createSession: () => void;
   joinSession: (code: string, alias: string) => void;
@@ -128,9 +138,21 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   neuroTunerResponses: [],
   diagnosisResponses: [],
 
-  createSession: () => {
+  unsubscribeFromFirebase: null,
+
+  createSession: async () => {
     const code = generateSessionCode();
     console.log("Creating session with code:", code);
+    
+    // Create Firebase session
+    try {
+      await createFirebaseSession(code);
+      console.log("Firebase session created successfully");
+    } catch (error) {
+      console.error("Error creating Firebase session:", error);
+      // Continue with local state even if Firebase fails
+    }
+    
     set({
       sessionCode: code,
       role: "presenter",
@@ -140,9 +162,33 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     console.log("Session created, role set to presenter");
   },
 
-  joinSession: (code: string, alias: string) => {
+  joinSession: async (code: string, alias: string) => {
     const id = generateId();
     const participant: Participant = { id, alias, joinedAt: Date.now() };
+    
+    // Join Firebase session
+    try {
+      await joinFirebaseSession(code, id, "participant");
+      console.log("Joined Firebase session successfully");
+      
+      // Subscribe to real-time updates
+      const unsubscribe = subscribeToBrandQuadrantResponses(code, (responses) => {
+        console.log("Received brand quadrant responses from Firebase:", responses);
+        // Convert Firebase responses to local format
+        const localResponses: BrandQuadrantResponse[] = responses.map((r: FirebaseBrandQuadrantResponse) => ({
+          participantId: r.participantId,
+          brand: r.brand,
+          quadrant: r.quadrant,
+        }));
+        set({ brandQuadrantResponses: localResponses });
+      });
+      
+      set({ unsubscribeFromFirebase: unsubscribe });
+    } catch (error) {
+      console.error("Error joining Firebase session:", error);
+      // Continue with local state even if Firebase fails
+    }
+    
     set((state) => ({
       sessionCode: code,
       role: "participant",
@@ -156,7 +202,13 @@ export const useSessionStore = create<SessionState>((set, get) => ({
   setRole: (role) => set({ role }),
   setCurrentExercise: (exercise) => set({ currentExercise: exercise }),
 
-  resetSession: () =>
+  resetSession: () => {
+    // Cleanup Firebase subscription
+    const { unsubscribeFromFirebase } = get();
+    if (unsubscribeFromFirebase) {
+      unsubscribeFromFirebase();
+    }
+    
     set({
       sessionCode: null,
       role: null,
@@ -172,7 +224,9 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       freeEnergyResponses: [],
       neuroTunerResponses: [],
       diagnosisResponses: [],
-    }),
+      unsubscribeFromFirebase: null,
+    });
+  },
 
   addAttentionResponse: (r) =>
     set((state) => ({ attentionResponses: [...state.attentionResponses, r] })),
@@ -180,10 +234,30 @@ export const useSessionStore = create<SessionState>((set, get) => ({
     set((state) => ({
       facePrimingResponses: [...state.facePrimingResponses, r],
     })),
-  addBrandQuadrantResponse: (r) =>
+  addBrandQuadrantResponse: async (r) => {
+    const { sessionCode } = get();
+    
+    // Update local state
     set((state) => ({
       brandQuadrantResponses: [...state.brandQuadrantResponses, r],
-    })),
+    }));
+    
+    // Sync to Firebase if session exists
+    if (sessionCode) {
+      try {
+        const firebaseResponse: FirebaseBrandQuadrantResponse = {
+          participantId: r.participantId,
+          brand: r.brand,
+          quadrant: r.quadrant,
+          timestamp: Date.now(),
+        };
+        await addFirebaseBrandQuadrantResponse(sessionCode, firebaseResponse);
+        console.log("Brand quadrant response synced to Firebase");
+      } catch (error) {
+        console.error("Error syncing brand quadrant response to Firebase:", error);
+      }
+    }
+  },
   addFreeEnergyResponse: (r) =>
     set((state) => ({
       freeEnergyResponses: [...state.freeEnergyResponses, r],
